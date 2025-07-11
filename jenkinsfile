@@ -16,17 +16,17 @@ pipeline {
    }
     stage('Compile Code') {
            steps {
-                   dir('my-app'){
+                   
                        sh 'mvn clean compile'
-                   }
+                   
            }
        }
  
        stage('Unit Tests') {
            steps {
-               dir('my-app'){
+               
                    sh 'mvn test'
-               }
+               
               
            }
        }
@@ -35,9 +35,9 @@ pipeline {
  
        stage('Build Jar') {
            steps {
-               dir('my-app'){
+               
                    sh 'mvn package'
-               }
+               
               
            }
        }
@@ -64,3 +64,4 @@ pipeline {
        }
    
   }
+}
