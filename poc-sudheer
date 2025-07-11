@@ -1,0 +1,66 @@
+pipeline {
+ agent any
+ 
+ environment {
+       DOCKER_IMAGE = "hello-webapp"
+       DOCKER_TAG = "v1.0.${BUILD_NUMBER}"
+       REGISTRY = "docker.io"
+      
+ }
+ 
+ stages {
+   stage('checkout'){
+       steps{
+           git branch: 'main', credentialsId: 'github-creds', url: 'https://github.com/sudheergundrasi/project-3.git'
+       }
+   }
+    stage('Compile Code') {
+           steps {
+                   dir('my-app'){
+                       sh 'mvn clean compile'
+                   }
+           }
+       }
+ 
+       stage('Unit Tests') {
+           steps {
+               dir('my-app'){
+                   sh 'mvn test'
+               }
+              
+           }
+       }
+
+
+ 
+       stage('Build Jar') {
+           steps {
+               dir('my-app'){
+                   sh 'mvn package'
+               }
+              
+           }
+       }
+       stage('Build Docker Image') {
+           steps {
+              withCredentials([usernamePassword(credentialsId: 'docker-hub-credentials', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+                   sh "docker build -t $DOCKER_IMAGE:$DOCKER_TAG ."
+               }
+              
+           }
+       }
+       stage('Push to Dockerhub') {
+           steps {
+                withCredentials([usernamePassword(credentialsId: 'docker-hub-credentials', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
+                // Use --password-stdin for secure login
+                  sh """
+                  echo "$PASSWORD" | docker login $REGISTRY --username $USERNAME --password-stdin
+                  docker tag $DOCKER_IMAGE:$DOCKER_TAG gundrasisudheer/satyasai:$DOCKER_TAG
+                  docker push gundrasisudheer/satyasai:$DOCKER_TAG
+               """
+             }
+          }
+ 
+       }
+   
+  }
